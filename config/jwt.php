@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'secret' => env('JWT_SECRET'),
+    'secret' => env('JWT_SECRET', '1FKHg061zMfaA6XegbGyPLsVMPo8DLZQA6IrxJdiivnXW3urOaOxxYcSihbPl4FB'),
     'keys' => [
         'public'  => env('JWT_PUBLIC_KEY'),
         'private' => env('JWT_PRIVATE_KEY'),
