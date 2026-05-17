@@ -9,6 +9,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 COPY . .
+RUN cp .env.production .env
 
 RUN composer install --optimize-autoloader --no-dev --no-interaction
 RUN touch database/database.sqlite
