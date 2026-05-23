@@ -35,12 +35,3 @@ Route::prefix('boutiques')->middleware(AuthBoutique::class)->group(function () {
     Route::put('/profil',     [BoutiqueController::class, 'mettreAJour']);
 });
 
-// Route temporaire pour migration (supprimer apres)
-Route::get('/run-migrate', function() {
-    try {
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-        return response()->json(['message' => 'Migration OK', 'output' => \Illuminate\Support\Facades\Artisan::output()]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
-    }
-});
