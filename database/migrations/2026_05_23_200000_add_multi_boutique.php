@@ -8,10 +8,13 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Ajouter proprietaire_id pour lier plusieurs boutiques
         Schema::table('boutiques', function (Blueprint $table) {
-            $table->string('proprietaire_telephone')->nullable()->after('proprietaire');
-            $table->boolean('est_principale')->default(true)->after('actif');
+            if (!Schema::hasColumn('boutiques', 'proprietaire_telephone')) {
+                $table->string('proprietaire_telephone')->nullable();
+            }
+            if (!Schema::hasColumn('boutiques', 'est_principale')) {
+                $table->boolean('est_principale')->default(true);
+            }
         });
     }
 
