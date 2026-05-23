@@ -8,20 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('boutiques', function (Blueprint $table) {
-            if (!Schema::hasColumn('boutiques', 'proprietaire_telephone')) {
+        // Colonnes ajoutees uniquement si elles n'existent pas
+        if (!Schema::hasColumn('boutiques', 'proprietaire_telephone')) {
+            Schema::table('boutiques', function (Blueprint $table) {
                 $table->string('proprietaire_telephone')->nullable();
-            }
-            if (!Schema::hasColumn('boutiques', 'est_principale')) {
+            });
+        }
+        if (!Schema::hasColumn('boutiques', 'est_principale')) {
+            Schema::table('boutiques', function (Blueprint $table) {
                 $table->boolean('est_principale')->default(true);
-            }
-        });
+            });
+        }
     }
 
-    public function down(): void
-    {
-        Schema::table('boutiques', function (Blueprint $table) {
-            $table->dropColumn(['proprietaire_telephone', 'est_principale']);
-        });
-    }
+    public function down(): void {}
 };
