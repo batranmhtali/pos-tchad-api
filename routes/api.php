@@ -35,3 +35,9 @@ Route::prefix('boutiques')->middleware(AuthBoutique::class)->group(function () {
     Route::put('/profil',     [BoutiqueController::class, 'mettreAJour']);
 });
 
+
+// Multi-boutique
+Route::middleware(\App\Http\Middleware\AuthBoutique::class)->group(function () {
+    Route::get('/boutiques',          [\App\Http\Controllers\Api\BoutiqueController::class, 'lister']);
+    Route::post('/boutiques/ajouter', [\App\Http\Controllers\Api\BoutiqueController::class, 'ajouterBoutique']);
+});
