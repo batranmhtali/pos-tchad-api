@@ -41,3 +41,9 @@ Route::middleware(\App\Http\Middleware\AuthBoutique::class)->group(function () {
     Route::get('/boutiques',          [\App\Http\Controllers\Api\BoutiqueController::class, 'lister']);
     Route::post('/boutiques/ajouter', [\App\Http\Controllers\Api\BoutiqueController::class, 'ajouterBoutique']);
 });
+
+// Migration temporaire
+Route::get('/migrate2', function() {
+    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    return response()->json(['output' => \Illuminate\Support\Facades\Artisan::output()]);
+});
