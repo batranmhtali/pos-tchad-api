@@ -20,3 +20,17 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('clients',  ClientController::class);
     Route::post('/sync',       [SyncController::class, 'sync']);
 });
+
+// ─── Routes SaaS Boutiques ────────────────────────────────────
+use App\Http\Controllers\Api\BoutiqueController;
+use App\Http\Middleware\AuthBoutique;
+
+Route::prefix('boutiques')->group(function () {
+    Route::post('/inscrire',  [BoutiqueController::class, 'inscrire']);
+    Route::post('/connexion', [BoutiqueController::class, 'connexion']);
+});
+
+Route::prefix('boutiques')->middleware(AuthBoutique::class)->group(function () {
+    Route::get('/profil',     [BoutiqueController::class, 'profil']);
+    Route::put('/profil',     [BoutiqueController::class, 'mettreAJour']);
+});
