@@ -100,6 +100,64 @@ class BoutiqueController extends Controller
         }
     }
 
+    public function lister(Request $request)
+    {
+        $telephone = $request->boutique->telephone;
+        $boutiques = Boutique::where(function($q) use ($telephone) {
+            $q->where('telephone', $telephone)
+              ->orWhere('proprietaire_telephone', $telephone);
+        })->where('actif', true)->get()->map(function($b) {
+            return [
+                'id'               => $b->id,
+                'nom'              => $b->nom,
+                'proprietaire'     => $b->proprietaire,
+                'telephone'        => $b->telephone,
+                'ville'            => $b->ville,
+                'plan'             => $b->plan,
+                'abonnement_valide'=> $b->abonnementValide(),
+                'jours_essai'      => $b->joursEssaiRestants(),
+                'est_principale'   => $b->est_principale ?? true,
+                'token'            => $b->token_api,
+            ];
+        });
+        return response()->json(['boutiques' => $boutiques]);
+    }
+
+    public function ajouterBoutique(Request $request)
+    {
+        try {
+            $request->validate([
+                'nom'       => 'required|string|max:100',
+                'telephone' => 'required|string|unique:boutiques,telephone',
+                'ville'     => 'nullable|string',
+            ]);
+            $proprietaire = $request->boutique;
+            $nouvelle = Boutique::create([
+                'nom'                    => $request->nom,
+                'proprietaire'           => $proprietaire->proprietaire,
+                'proprietaire_telephone' => $proprietaire->telephone,
+                'telephone'              => $request->telephone,
+                'mot_de_passe_hash'      => $proprietaire->mot_de_passe_hash,
+                'token_api'              => Boutique::genererToken(),
+                'ville'                  => $request->ville ?? $proprietaire->ville,
+                'plan'                   => $proprietaire->plan,
+                'essai_debut'            => $proprietaire->essai_debut,
+                'essai_fin'              => $proprietaire->essai_fin,
+                'abonnement_actif'       => true,
+                'est_principale'         => false,
+                'prix_mensuel'           => 5000,
+            ]);
+            return response()->json([
+                'message'  => 'Nouvelle boutique ajoutee !',
+                'boutique' => ['id' => $nouvelle->id, 'nom' => $nouvelle->nom, 'token' => $nouvelle->token_api],
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => 'Donnees invalides', 'errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+    }
+
     public function profil(Request $request)
     {
         $boutique = $request->boutique;
