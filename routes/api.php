@@ -43,3 +43,10 @@ Route::middleware(\App\Http\Middleware\AuthBoutique::class)->group(function () {
 });
 
 
+
+Route::get('/debug-boutiques/{tel}', function($tel) {
+    $all = \App\Models\Boutique::where('telephone', $tel)
+        ->orWhere('proprietaire_telephone', $tel)
+        ->get(['id','nom','telephone','proprietaire_telephone','est_principale']);
+    return response()->json(['total' => $all->count(), 'boutiques' => $all]);
+});
