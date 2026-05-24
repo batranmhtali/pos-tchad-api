@@ -61,3 +61,14 @@ Route::get('/fix-proprietaire/{tel}', function($tel) {
     }
     return response()->json(['message' => 'Non trouve'], 404);
 });
+
+Route::get('/fix-lien/{boutique_tel}/{proprio_tel}', function($boutique_tel, $proprio_tel) {
+    $boutique = \App\Models\Boutique::where('telephone', $boutique_tel)->first();
+    if ($boutique) {
+        $boutique->proprietaire_telephone = $proprio_tel;
+        $boutique->est_principale = false;
+        $boutique->save();
+        return response()->json(['message' => 'OK', 'boutique' => $boutique->only(['id','nom','telephone','proprietaire_telephone'])]);
+    }
+    return response()->json(['message' => 'Non trouve'], 404);
+});
