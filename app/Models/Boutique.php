@@ -12,6 +12,7 @@ class Boutique extends Model
         'mot_de_passe_hash', 'token_api', 'actif', 'plan',
         'essai_debut', 'essai_fin', 'abonnement_debut', 'abonnement_fin',
         'abonnement_actif', 'prix_mensuel',
+        'proprietaire_telephone', 'est_principale',
     ];
 
     protected $hidden = ['mot_de_passe_hash', 'token_api'];
