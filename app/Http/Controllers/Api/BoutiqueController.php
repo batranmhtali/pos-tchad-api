@@ -102,10 +102,15 @@ class BoutiqueController extends Controller
 
     public function lister(Request $request)
     {
-        $telephone = $request->boutique->telephone;
-        $boutiques = Boutique::where(function($q) use ($telephone) {
+        $boutique = $request->boutique;
+        $telephone = $boutique->telephone;
+        $propTel = $boutique->proprietaire_telephone ?? $telephone;
+
+        $boutiques = Boutique::where(function($q) use ($telephone, $propTel) {
             $q->where('telephone', $telephone)
-              ->orWhere('proprietaire_telephone', $telephone);
+              ->orWhere('telephone', $propTel)
+              ->orWhere('proprietaire_telephone', $telephone)
+              ->orWhere('proprietaire_telephone', $propTel);
         })->where('actif', true)->get()->map(function($b) {
             return [
                 'id'               => $b->id,
