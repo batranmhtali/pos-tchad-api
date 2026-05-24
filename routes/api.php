@@ -42,21 +42,4 @@ Route::middleware(\App\Http\Middleware\AuthBoutique::class)->group(function () {
     Route::post('/boutiques/ajouter', [\App\Http\Controllers\Api\BoutiqueController::class, 'ajouterBoutique']);
 });
 
-// Migration temporaire
-Route::get('/migrate2', function() {
-    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-    return response()->json(['output' => \Illuminate\Support\Facades\Artisan::output()]);
-});
 
-// Reset migration temporaire
-Route::get('/reset-migration', function() {
-    try {
-        \Illuminate\Support\Facades\DB::table('migrations')
-            ->where('migration', 'like', '%2026_05_23_200000%')
-            ->delete();
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-        return response()->json(['message' => 'OK', 'output' => \Illuminate\Support\Facades\Artisan::output()]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => $e->getMessage()]);
-    }
-});
