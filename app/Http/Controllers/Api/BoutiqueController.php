@@ -127,16 +127,17 @@ class BoutiqueController extends Controller
     {
         try {
             $request->validate([
-                'nom'       => 'required|string|max:100',
-                'telephone' => 'required|string|unique:boutiques,telephone',
-                'ville'     => 'nullable|string',
+                'nom'   => 'required|string|max:100',
+                'ville' => 'nullable|string',
             ]);
             $proprietaire = $request->boutique;
+            // Generer un identifiant unique pour la boutique
+            $telephone = 'bq_' . $proprietaire->id . '_' . time();
             $nouvelle = Boutique::create([
                 'nom'                    => $request->nom,
                 'proprietaire'           => $proprietaire->proprietaire,
                 'proprietaire_telephone' => $proprietaire->telephone,
-                'telephone'              => $request->telephone,
+                'telephone'              => $telephone,
                 'mot_de_passe_hash'      => $proprietaire->mot_de_passe_hash,
                 'token_api'              => Boutique::genererToken(),
                 'ville'                  => $request->ville ?? $proprietaire->ville,
