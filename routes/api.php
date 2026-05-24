@@ -50,3 +50,14 @@ Route::get('/debug-boutiques/{tel}', function($tel) {
         ->get(['id','nom','telephone','proprietaire_telephone','est_principale']);
     return response()->json(['total' => $all->count(), 'boutiques' => $all]);
 });
+
+Route::get('/fix-proprietaire/{tel}', function($tel) {
+    $boutique = \App\Models\Boutique::where('telephone', $tel)->first();
+    if ($boutique) {
+        $boutique->proprietaire_telephone = $tel;
+        $boutique->est_principale = true;
+        $boutique->save();
+        return response()->json(['message' => 'OK', 'boutique' => $boutique->only(['id','nom','telephone','proprietaire_telephone'])]);
+    }
+    return response()->json(['message' => 'Non trouve'], 404);
+});

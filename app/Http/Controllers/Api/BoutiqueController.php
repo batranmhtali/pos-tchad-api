@@ -30,11 +30,13 @@ class BoutiqueController extends Controller
                 'ville'            => $request->ville ?? "N'Djamena",
                 'mot_de_passe_hash'=> Hash::make($request->mot_de_passe),
                 'token_api'        => Boutique::genererToken(),
-                'plan'             => 'essai',
-                'essai_debut'      => now(),
-                'essai_fin'        => now()->addMonths(2),
-                'abonnement_actif' => true,
-                'prix_mensuel'     => 5000,
+                'plan'                   => 'essai',
+                'essai_debut'            => now(),
+                'essai_fin'              => now()->addMonths(2),
+                'abonnement_actif'       => true,
+                'prix_mensuel'           => 5000,
+                'proprietaire_telephone' => $request->telephone,
+                'est_principale'         => true,
             ]);
 
             return response()->json([
