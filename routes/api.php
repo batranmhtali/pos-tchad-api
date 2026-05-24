@@ -46,3 +46,9 @@ Route::middleware(\App\Http\Middleware\AuthBoutique::class)->group(function () {
 
 
 
+
+// Routes Synchronisation
+Route::middleware(\App\Http\Middleware\AuthBoutique::class)->group(function () {
+    Route::post('/sync',      [\App\Http\Controllers\Api\SyncController::class, 'sync']);
+    Route::get('/sync/pull',  [\App\Http\Controllers\Api\SyncController::class, 'pull']);
+});
