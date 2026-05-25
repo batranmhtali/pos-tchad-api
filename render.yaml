@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: sawik-api
+    runtime: php
+    plan: free
+    buildCommand: composer install --no-dev --optimize-autoloader && php artisan config:clear && php artisan migrate --force
+    startCommand: php artisan serve --host=0.0.0.0 --port=$PORT
+    envVars:
+      - key: APP_NAME
+        value: Sawik
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_KEY
+        value: base64:LCjdleG/UerwgcQAkZGGnVkUYHAChMnB064xGuiR3Ew=
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: JWT_SECRET
+        value: 1FKHg061zMfaA6XegbGyPLsVMPo8DLZQA6IrxJdiivnXW3urOaOxxYcSihbPl4FB
+      - key: JWT_TTL
+        value: 60
+      - key: JWT_REFRESH_TTL
+        value: 20160
+      - key: CACHE_STORE
+        value: database
+
+databases:
+  - name: sawik-db
+    plan: free
+    databaseName: sawik
+    user: sawik
