@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Utilisateur;
+use App\Models\User;
 use App\Models\Abonnement;
 use Illuminate\Http\Request;
 
@@ -21,7 +21,7 @@ class AdminController extends Controller
     {
         $this->verifierAdmin();
 
-        $utilisateurs = Utilisateur::with('abonnement')
+        $utilisateurs = User::with('abonnement')
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($u) {
@@ -58,7 +58,7 @@ class AdminController extends Controller
             'notes'      => 'nullable|string|max:255',
         ]);
 
-        $utilisateur = Utilisateur::findOrFail($id);
+        $utilisateur = User::findOrFail($id);
 
         Abonnement::updateOrCreate(
             ['utilisateur_id' => $utilisateur->id],
@@ -78,7 +78,7 @@ class AdminController extends Controller
     {
         $this->verifierAdmin();
 
-        $utilisateur = Utilisateur::findOrFail($id);
+        $utilisateur = User::findOrFail($id);
         $utilisateur->actif = !$utilisateur->actif;
         $utilisateur->save();
 
@@ -93,8 +93,8 @@ class AdminController extends Controller
         $this->verifierAdmin();
 
         return response()->json([
-            'total'    => Utilisateur::count(),
-            'actifs'   => Utilisateur::where('actif', true)->count(),
+            'total'    => User::count(),
+            'actifs'   => User::where('actif', true)->count(),
             'pro'      => Abonnement::where('plan', 'Pro')->where('statut', 'Actif')->count(),
             'essai'    => Abonnement::where('statut', 'Essai')->count(),
             'expires'  => Abonnement::where('statut', 'Expiré')->count(),
