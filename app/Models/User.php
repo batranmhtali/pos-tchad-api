@@ -25,4 +25,14 @@ class User extends Authenticatable implements JWTSubject
     {
         return ['role' => $this->role];
     }
+
+    public function abonnement()
+    {
+        return $this->hasOne(Abonnement::class, 'utilisateur_id');
+    }
+
+    public function boutiques()
+    {
+        return $this->hasMany(Boutique::class, 'proprietaire_id');
+    }
 }

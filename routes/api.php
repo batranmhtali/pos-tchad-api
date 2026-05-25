@@ -52,3 +52,13 @@ Route::middleware(\App\Http\Middleware\AuthBoutique::class)->group(function () {
     Route::post('/sync',      [\App\Http\Controllers\Api\SyncController::class, 'sync']);
     Route::get('/sync/pull',  [\App\Http\Controllers\Api\SyncController::class, 'pull']);
 });
+
+// ─── Routes Admin ────────────────────────────────────────────
+use App\Http\Controllers\Api\AdminController;
+
+Route::prefix('admin')->middleware('auth:api')->group(function () {
+    Route::get('/utilisateurs',              [AdminController::class, 'listeUtilisateurs']);
+    Route::put('/utilisateurs/{id}/abonnement', [AdminController::class, 'modifierAbonnement']);
+    Route::put('/utilisateurs/{id}/suspendre',  [AdminController::class, 'suspendreUtilisateur']);
+    Route::get('/statistiques',              [AdminController::class, 'statistiques']);
+});
