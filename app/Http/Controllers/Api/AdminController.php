@@ -100,4 +100,44 @@ class AdminController extends Controller
             'expires'  => Abonnement::where('statut', 'Expiré')->count(),
         ]);
     }
+
+
+    public function ajouterUtilisateur(Request $request)
+    {
+        $this->verifierAdmin();
+
+        $request->validate([
+            'nom'          => 'required|string|max:100',
+            'prenom'       => 'nullable|string|max:100',
+            'telephone'    => 'required|string|unique:utilisateurs,telephone',
+            'mot_de_passe' => 'required|string|min:4',
+            'role'         => 'in:user,admin',
+        ]);
+
+        $user = User::create([
+            'nom'              => $request->nom,
+            'prenom'           => $request->prenom ?? '',
+            'telephone'        => $request->telephone,
+            'mot_de_passe_hash'=> \Illuminate\Support\Facades\Hash::make($request->mot_de_passe),
+            'role'             => $request->role ?? 'user',
+            'actif'            => true,
+        ]);
+
+        return response()->json(['message' => 'Utilisateur créé', 'utilisateur' => $user], 201);
+    }
+
+    public function changerMotDePasse(Request $request, $id)
+    {
+        $this->verifierAdmin();
+
+        $request->validate([
+            'mot_de_passe' => 'required|string|min:4',
+        ]);
+
+        $user = User::findOrFail($id);
+        $user->mot_de_passe_hash = \Illuminate\Support\Facades\Hash::make($request->mot_de_passe);
+        $user->save();
+
+        return response()->json(['message' => 'Mot de passe modifié']);
+    }
 }

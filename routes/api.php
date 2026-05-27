@@ -62,3 +62,8 @@ Route::prefix('admin')->middleware('auth:api')->group(function () {
     Route::put('/utilisateurs/{id}/suspendre',  [AdminController::class, 'suspendreUtilisateur']);
     Route::get('/statistiques',              [AdminController::class, 'statistiques']);
 });
+
+Route::prefix('admin')->middleware('auth:api')->group(function () {
+    Route::post('/utilisateurs/creer',           [AdminController::class, 'ajouterUtilisateur']);
+    Route::put('/utilisateurs/{id}/password',    [AdminController::class, 'changerMotDePasse']);
+});

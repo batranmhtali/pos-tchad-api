@@ -9,20 +9,23 @@
 body { background: #f0f2f5; min-height: 100vh; }
 .topbar { background: #3730a3; color: white; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
 .topbar h1 { font-size: 18px; font-weight: 600; }
+.topbar-actions { display: flex; gap: 10px; }
 .topbar button { background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+.topbar .btn-add { background: #4ade80; color: #14532d; font-weight: 600; }
 .login-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
 .login-card { background: white; border-radius: 16px; padding: 40px; width: 340px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
 .login-card h2 { font-size: 22px; margin-bottom: 8px; color: #1e1b4b; }
 .login-card p { color: #6b7280; font-size: 13px; margin-bottom: 24px; }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; font-size: 13px; color: #374151; margin-bottom: 6px; font-weight: 500; }
-.form-group input { width: 100%; padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; }
-.form-group input:focus { border-color: #6366f1; }
+.form-group input, .form-group select { width: 100%; padding: 10px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; }
+.form-group input:focus, .form-group select:focus { border-color: #6366f1; }
 .btn-primary { width: 100%; background: #4f46e5; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 15px; cursor: pointer; font-weight: 500; }
 .btn-primary:hover { background: #4338ca; }
 .error { color: #dc2626; font-size: 13px; margin-top: 8px; text-align: center; }
+.success { color: #16a34a; font-size: 13px; margin-top: 8px; text-align: center; }
 .dashboard { display: none; }
-.content { max-width: 1000px; margin: 24px auto; padding: 0 16px; }
+.content { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
 .stat { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
 .stat-label { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
@@ -47,19 +50,26 @@ tr:hover td { background: #fafafa; }
 .badge-suspendu { background: #f3f4f6; color: #6b7280; }
 .badge-pro { background: #eff6ff; color: #2563eb; }
 .badge-gratuit { background: #f3f4f6; color: #6b7280; }
-.btn-action { padding: 5px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; border: 1px solid #e5e7eb; background: white; margin-right: 4px; }
+.btn-action { padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; border: 1px solid #e5e7eb; background: white; margin-right: 3px; }
 .btn-action:hover { background: #f3f4f6; }
 .btn-danger { border-color: #fca5a5; color: #dc2626; }
 .btn-danger:hover { background: #fef2f2; }
+.btn-warning { border-color: #fcd34d; color: #d97706; }
+.btn-warning:hover { background: #fffbeb; }
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
-.modal { background: white; border-radius: 16px; padding: 28px; width: 380px; box-shadow: 0 8px 40px rgba(0,0,0,0.15); }
+.modal { background: white; border-radius: 16px; padding: 28px; width: 400px; box-shadow: 0 8px 40px rgba(0,0,0,0.15); max-height: 90vh; overflow-y: auto; }
 .modal h3 { font-size: 17px; font-weight: 600; margin-bottom: 20px; color: #1e1b4b; }
-.modal select, .modal input[type=date] { width: 100%; padding: 9px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; margin-bottom: 14px; outline: none; }
+.modal select, .modal input { width: 100%; padding: 9px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; margin-bottom: 14px; outline: none; }
+.modal label { display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px; font-weight: 500; }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
 .btn-cancel { padding: 8px 18px; border: 1px solid #e5e7eb; border-radius: 8px; background: white; cursor: pointer; font-size: 14px; }
 .btn-save { padding: 8px 18px; background: #4f46e5; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
+.btn-save.green { background: #16a34a; }
 .hidden { display: none !important; }
 .loading { text-align: center; padding: 40px; color: #6b7280; }
+.msg { font-size: 13px; margin-top: 10px; text-align: center; }
+.msg.ok { color: #16a34a; }
+.msg.err { color: #dc2626; }
 </style>
 </head>
 <body>
@@ -70,7 +80,7 @@ tr:hover td { background: #fafafa; }
     <p>Connectez-vous pour gérer les abonnements</p>
     <div class="form-group">
       <label>Téléphone</label>
-      <input type="text" id="tel" placeholder="0000000000" value="0000000000">
+      <input type="text" id="tel" placeholder="0000000000">
     </div>
     <div class="form-group">
       <label>Mot de passe</label>
@@ -84,7 +94,10 @@ tr:hover td { background: #fafafa; }
 <div id="dashboard-page" class="dashboard">
   <div class="topbar">
     <h1>Sawik Admin</h1>
-    <button onclick="seDeconnecter()">Déconnexion</button>
+    <div class="topbar-actions">
+      <button class="btn-add" onclick="ouvrirModalAjout()">+ Ajouter utilisateur</button>
+      <button onclick="seDeconnecter()">Déconnexion</button>
+    </div>
   </div>
   <div class="content">
     <div class="stats">
@@ -105,27 +118,69 @@ tr:hover td { background: #fafafa; }
   </div>
 </div>
 
-<div id="modal" class="modal-overlay hidden">
+<!-- Modal abonnement -->
+<div id="modal-abo" class="modal-overlay hidden">
   <div class="modal">
-    <h3 id="modal-titre">Modifier abonnement</h3>
-    <label style="font-size:13px;color:#374151;font-weight:500">Plan</label>
+    <h3 id="modal-abo-titre">Modifier abonnement</h3>
+    <label>Plan</label>
     <select id="m-plan">
       <option value="Gratuit">Gratuit</option>
       <option value="Essai">Essai</option>
       <option value="Pro">Pro</option>
     </select>
-    <label style="font-size:13px;color:#374151;font-weight:500">Statut</label>
+    <label>Statut</label>
     <select id="m-statut">
       <option value="Actif">Actif</option>
       <option value="Essai">Essai</option>
       <option value="Expiré">Expiré</option>
       <option value="Suspendu">Suspendu</option>
     </select>
-    <label style="font-size:13px;color:#374151;font-weight:500">Date de fin</label>
+    <label>Date de fin</label>
     <input type="date" id="m-datefin">
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="fermerModal()">Annuler</button>
-      <button class="btn-save" onclick="sauvegarder()">Enregistrer</button>
+      <button class="btn-cancel" onclick="fermerModals()">Annuler</button>
+      <button class="btn-save" onclick="sauvegarderAbo()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal mot de passe -->
+<div id="modal-mdp" class="modal-overlay hidden">
+  <div class="modal">
+    <h3 id="modal-mdp-titre">Changer le mot de passe</h3>
+    <label>Nouveau mot de passe</label>
+    <input type="password" id="m-mdp" placeholder="Minimum 4 caractères">
+    <label>Confirmer</label>
+    <input type="password" id="m-mdp2" placeholder="Répéter le mot de passe">
+    <div id="mdp-msg" class="msg"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fermerModals()">Annuler</button>
+      <button class="btn-save green" onclick="sauvegarderMdp()">Changer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal ajouter utilisateur -->
+<div id="modal-ajout" class="modal-overlay hidden">
+  <div class="modal">
+    <h3>Ajouter un utilisateur</h3>
+    <label>Nom</label>
+    <input type="text" id="a-nom" placeholder="Nom">
+    <label>Prénom</label>
+    <input type="text" id="a-prenom" placeholder="Prénom (optionnel)">
+    <label>Téléphone</label>
+    <input type="text" id="a-tel" placeholder="Ex: 66112233">
+    <label>Mot de passe</label>
+    <input type="password" id="a-mdp" placeholder="Minimum 4 caractères">
+    <label>Rôle</label>
+    <select id="a-role">
+      <option value="user">Utilisateur</option>
+      <option value="admin">Admin</option>
+    </select>
+    <div id="ajout-msg" class="msg"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fermerModals()">Annuler</button>
+      <button class="btn-save green" onclick="ajouterUtilisateur()">Créer</button>
     </div>
   </div>
 </div>
@@ -198,25 +253,30 @@ function badgePlan(p) {
 }
 
 function renderTable(data) {
-  if (!data.length) { document.getElementById('table-wrap').innerHTML = '<div class="loading">Aucun utilisateur</div>'; return; }
+  if (!data.length) {
+    document.getElementById('table-wrap').innerHTML = '<div class="loading">Aucun utilisateur</div>';
+    return;
+  }
   const rows = data.map(u => {
     const ab = u.abonnement || {};
     const actif = u.actif;
     return `<tr>
       <td><strong>${u.nom} ${u.prenom}</strong></td>
       <td>${u.telephone}</td>
+      <td>${u.role === 'admin' ? '<span class="badge badge-pro">Admin</span>' : '<span class="badge badge-gratuit">User</span>'}</td>
       <td>${badgePlan(ab.plan)}</td>
       <td>${badgeStatut(ab.statut)}</td>
       <td style="color:#6b7280">${ab.date_fin ? ab.date_fin.substring(0,10) : '—'}</td>
       <td>
-        <button class="btn-action" onclick="ouvrirModal(${u.id},'${u.nom}')">Modifier</button>
+        <button class="btn-action" onclick="ouvrirModalAbo(${u.id},'${u.nom}')">Abonnement</button>
+        <button class="btn-action btn-warning" onclick="ouvrirModalMdp(${u.id},'${u.nom}')">Mot de passe</button>
         <button class="btn-action btn-danger" onclick="suspendre(${u.id})">${actif?'Suspendre':'Activer'}</button>
       </td>
     </tr>`;
   }).join('');
   document.getElementById('table-wrap').innerHTML = `
     <table>
-      <thead><tr><th>Nom</th><th>Téléphone</th><th>Plan</th><th>Statut</th><th>Expiration</th><th>Actions</th></tr></thead>
+      <thead><tr><th>Nom</th><th>Téléphone</th><th>Rôle</th><th>Plan</th><th>Statut</th><th>Expiration</th><th>Actions</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
 }
@@ -229,23 +289,25 @@ function filtrer(q) {
   renderTable(f);
 }
 
-function ouvrirModal(id, nom) {
-  editingId = id;
-  const u = utilisateurs.find(x => x.id === id);
-  const ab = u.abonnement || {};
-  document.getElementById('modal-titre').textContent = 'Abonnement — ' + nom;
-  document.getElementById('m-plan').value = ab.plan || 'Gratuit';
-  document.getElementById('m-statut').value = ab.statut || 'Actif';
-  document.getElementById('m-datefin').value = ab.date_fin ? ab.date_fin.substring(0,10) : '';
-  document.getElementById('modal').classList.remove('hidden');
-}
-
-function fermerModal() {
-  document.getElementById('modal').classList.add('hidden');
+function fermerModals() {
+  document.getElementById('modal-abo').classList.add('hidden');
+  document.getElementById('modal-mdp').classList.add('hidden');
+  document.getElementById('modal-ajout').classList.add('hidden');
   editingId = null;
 }
 
-async function sauvegarder() {
+function ouvrirModalAbo(id, nom) {
+  editingId = id;
+  const u = utilisateurs.find(x => x.id === id);
+  const ab = u.abonnement || {};
+  document.getElementById('modal-abo-titre').textContent = 'Abonnement — ' + nom;
+  document.getElementById('m-plan').value = ab.plan || 'Gratuit';
+  document.getElementById('m-statut').value = ab.statut || 'Actif';
+  document.getElementById('m-datefin').value = ab.date_fin ? ab.date_fin.substring(0,10) : '';
+  document.getElementById('modal-abo').classList.remove('hidden');
+}
+
+async function sauvegarderAbo() {
   const body = {
     plan: document.getElementById('m-plan').value,
     statut: document.getElementById('m-statut').value,
@@ -257,9 +319,74 @@ async function sauvegarder() {
     headers: {'Authorization':'Bearer '+token,'Content-Type':'application/json'},
     body: JSON.stringify(body)
   });
-  fermerModal();
+  fermerModals();
   chargerStats();
   chargerUtilisateurs();
+}
+
+function ouvrirModalMdp(id, nom) {
+  editingId = id;
+  document.getElementById('modal-mdp-titre').textContent = 'Mot de passe — ' + nom;
+  document.getElementById('m-mdp').value = '';
+  document.getElementById('m-mdp2').value = '';
+  document.getElementById('mdp-msg').textContent = '';
+  document.getElementById('modal-mdp').classList.remove('hidden');
+}
+
+async function sauvegarderMdp() {
+  const mdp = document.getElementById('m-mdp').value;
+  const mdp2 = document.getElementById('m-mdp2').value;
+  const msg = document.getElementById('mdp-msg');
+  if (mdp.length < 4) { msg.className='msg err'; msg.textContent='Minimum 4 caractères'; return; }
+  if (mdp !== mdp2) { msg.className='msg err'; msg.textContent='Les mots de passe ne correspondent pas'; return; }
+  const res = await fetch(`${API}/admin/utilisateurs/${editingId}/password`, {
+    method: 'PUT',
+    headers: {'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+    body: JSON.stringify({mot_de_passe: mdp})
+  });
+  const data = await res.json();
+  if (res.ok) {
+    msg.className='msg ok'; msg.textContent='Mot de passe modifié !';
+    setTimeout(fermerModals, 1200);
+  } else {
+    msg.className='msg err'; msg.textContent = data.message || 'Erreur';
+  }
+}
+
+function ouvrirModalAjout() {
+  document.getElementById('a-nom').value = '';
+  document.getElementById('a-prenom').value = '';
+  document.getElementById('a-tel').value = '';
+  document.getElementById('a-mdp').value = '';
+  document.getElementById('a-role').value = 'user';
+  document.getElementById('ajout-msg').textContent = '';
+  document.getElementById('modal-ajout').classList.remove('hidden');
+}
+
+async function ajouterUtilisateur() {
+  const msg = document.getElementById('ajout-msg');
+  const body = {
+    nom: document.getElementById('a-nom').value,
+    prenom: document.getElementById('a-prenom').value,
+    telephone: document.getElementById('a-tel').value,
+    mot_de_passe: document.getElementById('a-mdp').value,
+    role: document.getElementById('a-role').value,
+  };
+  if (!body.nom || !body.telephone || !body.mot_de_passe) {
+    msg.className='msg err'; msg.textContent='Nom, téléphone et mot de passe requis'; return;
+  }
+  const res = await fetch(`${API}/admin/utilisateurs/creer`, {
+    method: 'POST',
+    headers: {'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (res.ok) {
+    msg.className='msg ok'; msg.textContent='Utilisateur créé !';
+    setTimeout(() => { fermerModals(); chargerStats(); chargerUtilisateurs(); }, 1200);
+  } else {
+    msg.className='msg err'; msg.textContent = data.message || 'Erreur';
+  }
 }
 
 async function suspendre(id) {
@@ -272,7 +399,6 @@ async function suspendre(id) {
 }
 
 if (token) afficherDashboard();
-
 document.getElementById('mdp').addEventListener('keypress', e => {
   if (e.key === 'Enter') seConnecter();
 });
