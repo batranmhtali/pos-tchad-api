@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\TelegramController;
 use App\Models\Boutique;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class BoutiqueController extends Controller
 {
@@ -180,5 +182,144 @@ class BoutiqueController extends Controller
             'jours_essai'      => $boutique->joursEssaiRestants(),
             'essai_fin'        => $boutique->essai_fin?->format('d/m/Y'),
         ]);
+    }
+
+    // ─── OTP : Demande de réinitialisation de mot de passe ───────
+    // POST /api/boutiques/otp-demander
+    // Génère un OTP côté serveur et l'envoie via Telegram Bot (gratuit, sans limite).
+    public function demanderOTP(Request $request)
+    {
+        try {
+            $request->validate(['telephone' => 'required|string']);
+
+            $boutique = Boutique::where('telephone', $request->telephone)
+                ->where('actif', true)->first();
+
+            if (!$boutique) {
+                // Réponse vague pour éviter l'énumération de comptes
+                return response()->json([
+                    'message' => 'Si ce numéro existe, un code a été envoyé.',
+                ]);
+            }
+
+            // Générer un code OTP à 6 chiffres sécurisé
+            $code = str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+
+            // Stocker le HASH du code + expiration 10 minutes
+            $boutique->update([
+                'otp_code'   => Hash::make($code),
+                'otp_expire' => now()->addMinutes(10),
+            ]);
+
+            $support = config('app.support_whatsapp', '+23599966622');
+
+            // ─── Canal 1 : Telegram (prioritaire) ──────────────────
+            if (!empty($boutique->telegram_chat_id)) {
+                $texte =
+                    "🔐 <b>Code Sawik</b>\n\n"
+                  . "Boutique : <b>{$boutique->nom}</b>\n"
+                  . "Code : <b>{$code}</b>\n\n"
+                  . "<i>Valable 10 minutes. Ne le partagez jamais.</i>";
+
+                $envoye = TelegramController::envoyerMessage($boutique->telegram_chat_id, $texte);
+
+                if ($envoye) {
+                    return response()->json([
+                        'message' => 'Code envoyé sur Telegram ✅',
+                        'canal'   => 'telegram',
+                    ]);
+                }
+            }
+
+            // ─── Canal 2 : Email (si disponible) ───────────────────
+            if (!empty($boutique->email)) {
+                try {
+                    \Illuminate\Support\Facades\Mail::send([], [], function ($m) use ($boutique, $code) {
+                        $m->to($boutique->email)
+                          ->subject('Sawik - Code OTP')
+                          ->html(
+                              "<div style='font-family:sans-serif;max-width:480px;margin:auto;padding:24px'>"
+                            . "<h2 style='color:#009688'>🏪 Sawik</h2>"
+                            . "<p>Bonjour <strong>{$boutique->proprietaire}</strong>,</p>"
+                            . "<p>Votre code de réinitialisation :</p>"
+                            . "<div style='background:#f5f5f5;border-radius:10px;padding:20px;"
+                            .   "text-align:center;font-size:36px;font-weight:bold;"
+                            .   "letter-spacing:12px;color:#009688'>{$code}</div>"
+                            . "<p style='color:#888;font-size:13px'>Expire dans <strong>10 minutes</strong>.</p>"
+                            . "</div>"
+                          );
+                    });
+                    $emailParts = explode('@', $boutique->email);
+                    $local = $emailParts[0];
+                    $masque = substr($local, 0, 2) . '***@' . ($emailParts[1] ?? '');
+                    return response()->json(['message' => "Code envoyé à $masque", 'canal' => 'email']);
+                } catch (\Exception $e) {
+                    Log::warning('OTP email fallback failed: ' . $e->getMessage());
+                }
+            }
+
+            // ─── Canal 3 : Pas de Telegram ni email → support WhatsApp ──
+            return response()->json([
+                'message'          => 'Compte non lié à Telegram.',
+                'sans_telegram'    => true,
+                'support_whatsapp' => $support,
+                'instruction'      => "Ouvrez Telegram, cherchez @SuppSawik_bot, envoyez votre numéro pour lier votre compte.",
+            ], 422);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => 'Numéro requis'], 422);
+        } catch (\Exception $e) {
+            Log::error('OTP demander error: ' . $e->getMessage());
+            return response()->json(['message' => 'Erreur serveur'], 500);
+        }
+    }
+
+    // ─── OTP : Vérification + réinitialisation du mot de passe ───
+    // POST /api/boutiques/otp-verifier
+    public function verifierOTP(Request $request)
+    {
+        try {
+            $request->validate([
+                'telephone'         => 'required|string',
+                'otp'               => 'required|string|size:6',
+                'nouveau_mot_de_passe' => 'required|string|min:4',
+            ]);
+
+            $boutique = Boutique::where('telephone', $request->telephone)
+                ->where('actif', true)->first();
+
+            if (!$boutique || empty($boutique->otp_code) || empty($boutique->otp_expire)) {
+                return response()->json(['message' => 'Aucun code OTP en attente. Recommencez.'], 400);
+            }
+
+            // Vérifier expiration
+            if (now()->isAfter($boutique->otp_expire)) {
+                $boutique->update(['otp_code' => null, 'otp_expire' => null]);
+                return response()->json(['message' => 'Code OTP expiré. Recommencez.'], 400);
+            }
+
+            // Vérifier le code (comparaison sécurisée contre timing attacks)
+            if (!Hash::check($request->otp, $boutique->otp_code)) {
+                return response()->json(['message' => 'Code OTP incorrect.'], 400);
+            }
+
+            // Réinitialiser le mot de passe et effacer l'OTP
+            $boutique->update([
+                'mot_de_passe_hash' => Hash::make($request->nouveau_mot_de_passe),
+                'otp_code'          => null,
+                'otp_expire'        => null,
+            ]);
+
+            return response()->json([
+                'message' => 'Mot de passe réinitialisé avec succès.',
+                'token'   => $boutique->token_api,
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => 'Données invalides', 'errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            Log::error('OTP verifier error: ' . $e->getMessage());
+            return response()->json(['message' => 'Erreur serveur'], 500);
+        }
     }
 }

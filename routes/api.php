@@ -26,8 +26,11 @@ use App\Http\Controllers\Api\BoutiqueController;
 use App\Http\Middleware\AuthBoutique;
 
 Route::prefix('boutiques')->group(function () {
-    Route::post('/inscrire',  [BoutiqueController::class, 'inscrire']);
-    Route::post('/connexion', [BoutiqueController::class, 'connexion']);
+    Route::post('/inscrire',     [BoutiqueController::class, 'inscrire']);
+    Route::post('/connexion',    [BoutiqueController::class, 'connexion']);
+    // OTP publics (pas de token requis — récupération de mot de passe)
+    Route::post('/otp-demander', [BoutiqueController::class, 'demanderOTP']);
+    Route::post('/otp-verifier', [BoutiqueController::class, 'verifierOTP']);
 });
 
 Route::prefix('boutiques')->middleware(AuthBoutique::class)->group(function () {
@@ -52,6 +55,14 @@ Route::middleware(\App\Http\Middleware\AuthBoutique::class)->group(function () {
     Route::post('/sync',      [\App\Http\Controllers\Api\SyncController::class, 'sync']);
     Route::get('/sync/pull',  [\App\Http\Controllers\Api\SyncController::class, 'pull']);
 });
+
+// ─── Routes Telegram Bot ─────────────────────────────────────
+use App\Http\Controllers\Api\TelegramController;
+
+// Webhook Telegram (appelé automatiquement par Telegram)
+Route::post('/telegram/webhook', [TelegramController::class, 'webhook']);
+// À appeler une seule fois pour enregistrer le webhook
+Route::get('/telegram/set-webhook', [TelegramController::class, 'setWebhook']);
 
 // ─── Routes Admin ────────────────────────────────────────────
 use App\Http\Controllers\Api\AdminController;
