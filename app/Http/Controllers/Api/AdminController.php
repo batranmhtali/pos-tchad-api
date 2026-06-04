@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Abonnement;
+use App\Models\Boutique;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -137,6 +138,102 @@ class AdminController extends Controller
         $user = User::findOrFail($id);
         $user->mot_de_passe_hash = \Illuminate\Support\Facades\Hash::make($request->mot_de_passe);
         $user->save();
+
+        return response()->json(['message' => 'Mot de passe modifié']);
+    }
+
+    // ─── Admin Boutiques SaaS ─────────────────────────────────────
+
+    public function listeBoutiques()
+    {
+        $this->verifierAdmin();
+
+        $boutiques = Boutique::orderBy('created_at', 'desc')->get()->map(function ($b) {
+            return [
+                'id'               => $b->id,
+                'nom'              => $b->nom,
+                'proprietaire'     => $b->proprietaire,
+                'telephone'        => $b->telephone,
+                'email'            => $b->email,
+                'ville'            => $b->ville ?? 'N\'Djamena',
+                'plan'             => $b->plan,
+                'actif'            => $b->actif,
+                'abonnement_valide'=> $b->abonnementValide(),
+                'essai_actif'      => $b->essaiActif(),
+                'jours_restants'   => $b->joursEssaiRestants(),
+                'essai_fin'        => $b->essai_fin?->format('Y-m-d'),
+                'abonnement_fin'   => $b->abonnement_fin?->format('Y-m-d'),
+                'abonnement_actif' => $b->abonnement_actif,
+                'est_principale'   => $b->est_principale ?? true,
+                'telegram_lie'     => !empty($b->telegram_chat_id),
+                'created_at'       => $b->created_at->format('Y-m-d'),
+            ];
+        });
+
+        return response()->json(['boutiques' => $boutiques]);
+    }
+
+    public function statistiquesBoutiques()
+    {
+        $this->verifierAdmin();
+
+        $boutiques = Boutique::all();
+        $total     = $boutiques->count();
+        $actives   = $boutiques->filter(fn($b) => $b->abonnementValide())->count();
+        $essai     = $boutiques->filter(fn($b) => $b->essaiActif())->count();
+        $pro       = $boutiques->where('plan', 'pro')->where('abonnement_actif', true)->count();
+        $expires   = $boutiques->filter(fn($b) => !$b->abonnementValide() && $b->actif)->count();
+        $telegram  = $boutiques->filter(fn($b) => !empty($b->telegram_chat_id))->count();
+        $revenus   = $pro * 5000;
+
+        return response()->json(compact('total','actives','essai','pro','expires','telegram','revenus'));
+    }
+
+    public function modifierAbonnementBoutique(Request $request, $id)
+    {
+        $this->verifierAdmin();
+
+        $boutique = Boutique::findOrFail($id);
+
+        $data = [];
+        if ($request->has('plan'))             $data['plan']             = $request->plan;
+        if ($request->has('essai_fin'))        $data['essai_fin']        = $request->essai_fin;
+        if ($request->has('abonnement_fin'))   $data['abonnement_fin']   = $request->abonnement_fin;
+        if ($request->has('abonnement_actif')) $data['abonnement_actif'] = $request->abonnement_actif;
+
+        $boutique->update($data);
+
+        return response()->json(['message' => 'Boutique mise à jour', 'boutique' => [
+            'id'               => $boutique->id,
+            'plan'             => $boutique->fresh()->plan,
+            'abonnement_valide'=> $boutique->fresh()->abonnementValide(),
+            'jours_restants'   => $boutique->fresh()->joursEssaiRestants(),
+        ]]);
+    }
+
+    public function suspendreBoutique($id)
+    {
+        $this->verifierAdmin();
+
+        $boutique = Boutique::findOrFail($id);
+        $boutique->actif = !$boutique->actif;
+        $boutique->save();
+
+        return response()->json([
+            'message' => $boutique->actif ? 'Boutique activée' : 'Boutique suspendue',
+            'actif'   => $boutique->actif,
+        ]);
+    }
+
+    public function changerMotDePasseBoutique(Request $request, $id)
+    {
+        $this->verifierAdmin();
+
+        $request->validate(['mot_de_passe' => 'required|string|min:4']);
+
+        $boutique = Boutique::findOrFail($id);
+        $boutique->mot_de_passe_hash = \Illuminate\Support\Facades\Hash::make($request->mot_de_passe);
+        $boutique->save();
 
         return response()->json(['message' => 'Mot de passe modifié']);
     }
