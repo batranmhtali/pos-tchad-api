@@ -67,3 +67,12 @@ Route::prefix('admin')->middleware('auth:api')->group(function () {
     Route::post('/utilisateurs/creer',           [AdminController::class, 'ajouterUtilisateur']);
     Route::put('/utilisateurs/{id}/password',    [AdminController::class, 'changerMotDePasse']);
 });
+
+// Route admin - voir toutes les boutiques
+Route::get('/admin/boutiques', function() {
+    $boutiques = \App\Models\Boutique::orderBy('id', 'desc')->get([
+        'id','nom','proprietaire','telephone','ville','plan',
+        'essai_debut','essai_fin','abonnement_actif','proprietaire_telephone','est_principale'
+    ]);
+    return response()->json(['total' => $boutiques->count(), 'boutiques' => $boutiques]);
+});
