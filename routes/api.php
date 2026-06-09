@@ -85,3 +85,8 @@ Route::prefix('admin')->middleware('auth:api')->group(function () {
     Route::put('/boutiques/{id}/suspendre',      [AdminController::class, 'suspendreBoutique']);
     Route::put('/boutiques/{id}/password',       [AdminController::class, 'changerMotDePasseBoutique']);
 });
+
+Route::get('/run-migrate', function() {
+    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    return response()->json(['output' => \Illuminate\Support\Facades\Artisan::output()]);
+});
