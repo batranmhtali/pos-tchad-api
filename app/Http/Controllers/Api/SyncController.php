@@ -56,9 +56,10 @@ class SyncController extends Controller
             if ($request->has('produits')) {
                 foreach ($request->produits as $produit) {
                     DB::table('sync_produits')->updateOrInsert(
-                        ['boutique_id' => $boutique->id, 'code_barre' => $produit['codeBarre'] ?? $produit['id']],
+                        ['boutique_id' => $boutique->id, 'produit_id' => $produit['id']],
                         [
                             'boutique_id'   => $boutique->id,
+                            'produit_id'    => $produit['id'],
                             'nom'           => $produit['nom'],
                             'prix'          => $produit['prix'],
                             'prix_achat'    => $produit['prixAchat'] ?? 0,
