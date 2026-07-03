@@ -92,6 +92,46 @@ class SyncController extends Controller
                 }
             }
 
+            // Sync Retours
+            if ($request->has('retours')) {
+                foreach ($request->retours as $retour) {
+                    DB::table('sync_retours')->updateOrInsert(
+                        ['boutique_id' => $boutique->id, 'numero' => $retour['numero']],
+                        [
+                            'boutique_id'   => $boutique->id,
+                            'numero'        => $retour['numero'],
+                            'date'          => $retour['date'],
+                            'vente_numero'  => $retour['vente_numero'] ?? '',
+                            'motif'         => $retour['motif'] ?? '',
+                            'type'          => $retour['type'] ?? 'remboursement',
+                            'total'         => $retour['total'] ?? 0,
+                            'produits'      => json_encode($retour['produits'] ?? []),
+                            'synced_at'     => now(),
+                        ]
+                    );
+                }
+            }
+
+            // Sync Mouvements de stock
+            if ($request->has('mouvements')) {
+                foreach ($request->mouvements as $mvt) {
+                    DB::table('sync_mouvements')->updateOrInsert(
+                        ['boutique_id' => $boutique->id, 'mouvement_id' => $mvt['id']],
+                        [
+                            'boutique_id'   => $boutique->id,
+                            'mouvement_id'  => $mvt['id'],
+                            'type'          => $mvt['type'] ?? 'sortie',
+                            'produit_nom'   => $mvt['produit_nom'] ?? '',
+                            'produit_id'    => $mvt['produit_id'] ?? 0,
+                            'quantite'      => $mvt['quantite'] ?? 0,
+                            'motif'         => $mvt['motif'] ?? '',
+                            'date'          => $mvt['date'],
+                            'synced_at'     => now(),
+                        ]
+                    );
+                }
+            }
+
             DB::commit();
 
             return response()->json([
@@ -118,12 +158,18 @@ class SyncController extends Controller
                       ->orderBy('date', 'desc')->limit(500)->get();
         $produits = DB::table('sync_produits')->where('boutique_id', $boutique->id)->get();
         $clients  = DB::table('sync_clients')->where('boutique_id', $boutique->id)->get();
+        $retours  = DB::table('sync_retours')->where('boutique_id', $boutique->id)
+                      ->orderBy('date', 'desc')->limit(500)->get();
+        $mouvements = DB::table('sync_mouvements')->where('boutique_id', $boutique->id)
+                      ->orderBy('date', 'desc')->limit(500)->get();
 
         return response()->json([
-            'ventes'   => $ventes,
-            'produits' => $produits,
-            'clients'  => $clients,
-            'synced_at'=> now()->toIso8601String(),
+            'ventes'     => $ventes,
+            'produits'   => $produits,
+            'clients'    => $clients,
+            'retours'    => $retours,
+            'mouvements' => $mouvements,
+            'synced_at'  => now()->toIso8601String(),
         ]);
     }
 }
