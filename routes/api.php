@@ -87,7 +87,3 @@ Route::prefix('admin')->middleware('auth:api')->group(function () {
 });
 
 
-Route::get('/run-migrate', function() {
-    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-    return response()->json(['output' => \Illuminate\Support\Facades\Artisan::output()]);
-});
