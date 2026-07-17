@@ -8,7 +8,7 @@ use App\Http\Controllers\Api\ClientController;
 use App\Http\Controllers\Api\SyncController;
 
 // Routes publiques (sans auth)
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 Route::get('/sync/status', [SyncController::class, 'status']);
 
 // Routes protégées par JWT
@@ -75,6 +75,7 @@ Route::prefix('admin')->middleware('auth:api')->group(function () {
 });
 
 Route::prefix('admin')->middleware('auth:api')->group(function () {
+    Route::put('/mon-mot-de-passe',              [AdminController::class, 'changerMonMotDePasse']);
     Route::post('/utilisateurs/creer',           [AdminController::class, 'ajouterUtilisateur']);
     Route::put('/utilisateurs/{id}/password',    [AdminController::class, 'changerMotDePasse']);
 

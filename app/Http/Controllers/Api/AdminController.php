@@ -237,4 +237,31 @@ class AdminController extends Controller
 
         return response()->json(['message' => 'Mot de passe modifié']);
     }
+
+    /**
+     * Changer SON PROPRE mot de passe (admin connecte)
+     * PUT /api/admin/mon-mot-de-passe
+     */
+    public function changerMonMotDePasse(Request $request)
+    {
+        $request->validate([
+            'ancien_mot_de_passe' => 'required|string',
+            'nouveau_mot_de_passe' => 'required|string|min:8',
+        ]);
+
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['message' => 'Non authentifie'], 401);
+        }
+
+        // Verifier l'ancien mot de passe
+        if (!\Illuminate\Support\Facades\Hash::check($request->ancien_mot_de_passe, $user->mot_de_passe_hash)) {
+            return response()->json(['message' => 'Ancien mot de passe incorrect'], 403);
+        }
+
+        $user->mot_de_passe_hash = \Illuminate\Support\Facades\Hash::make($request->nouveau_mot_de_passe);
+        $user->save();
+
+        return response()->json(['message' => 'Mot de passe modifie avec succes']);
+    }
 }
