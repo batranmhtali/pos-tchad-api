@@ -249,7 +249,7 @@ class AdminController extends Controller
             'nouveau_mot_de_passe' => 'required|string|min:8',
         ]);
 
-        $user = $request->user();
+        $user = auth()->user();
         if (!$user) {
             return response()->json(['message' => 'Non authentifie'], 401);
         }
