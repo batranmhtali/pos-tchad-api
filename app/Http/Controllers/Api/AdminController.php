@@ -244,23 +244,32 @@ class AdminController extends Controller
      */
     public function changerMonMotDePasse(Request $request)
     {
-        $this->verifierAdmin();
+        try {
+            $this->verifierAdmin();
 
-        $request->validate([
-            'ancien_mot_de_passe' => 'required|string',
-            'nouveau_mot_de_passe' => 'required|string|min:8',
-        ]);
+            $request->validate([
+                'ancien_mot_de_passe' => 'required|string',
+                'nouveau_mot_de_passe' => 'required|string|min:8',
+            ]);
 
-        $admin = auth()->user();
-        $user = User::findOrFail($admin->id);
+            $admin = auth()->user();
+            $user = User::findOrFail($admin->id);
 
-        if (!\Illuminate\Support\Facades\Hash::check($request->ancien_mot_de_passe, $user->mot_de_passe_hash)) {
-            return response()->json(['message' => 'Ancien mot de passe incorrect'], 403);
+            if (!\Illuminate\Support\Facades\Hash::check($request->ancien_mot_de_passe, $user->mot_de_passe_hash)) {
+                return response()->json(['message' => 'Ancien mot de passe incorrect'], 403);
+            }
+
+            $user->mot_de_passe_hash = \Illuminate\Support\Facades\Hash::make($request->nouveau_mot_de_passe);
+            $user->save();
+
+            return response()->json(['message' => 'Mot de passe modifie avec succes']);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'ERREUR DIAGNOSTIC',
+                'erreur' => $e->getMessage(),
+                'ligne' => $e->getLine(),
+                'fichier' => basename($e->getFile()),
+            ], 500);
         }
-
-        $user->mot_de_passe_hash = \Illuminate\Support\Facades\Hash::make($request->nouveau_mot_de_passe);
-        $user->save();
-
-        return response()->json(['message' => 'Mot de passe modifie avec succes']);
     }
 }
