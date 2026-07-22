@@ -118,6 +118,7 @@ tr:hover td { background: #f9fefe; }
     <h1><img src="logo.png" alt="Sawik" style="height:36px;vertical-align:middle;margin-right:8px;border-radius:8px;"> Sawik Admin</h1>
     <div class="topbar-actions">
       <span id="admin-name" style="font-size:13px;opacity:.8"></span>
+      <button onclick="ouvrirModalMonMdp()" style="margin-right:8px">🔒 Mon mot de passe</button>
       <button onclick="seDeconnecter()">Déconnexion</button>
     </div>
   </div>
@@ -218,6 +219,24 @@ tr:hover td { background: #f9fefe; }
     <div class="modal-actions">
       <button class="btn-cancel" onclick="fermerModals()">Annuler</button>
       <button class="btn-save" onclick="sauvegarderMdp()">Changer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal MON mot de passe (admin) ─── -->
+<div id="modal-mon-mdp" class="modal-overlay hidden">
+  <div class="modal">
+    <h3>Changer mon mot de passe</h3>
+    <label>Mot de passe actuel</label>
+    <input type="password" id="mon-mdp-ancien" placeholder="Mot de passe actuel">
+    <label>Nouveau mot de passe</label>
+    <input type="password" id="mon-mdp-nouveau" placeholder="Minimum 8 caractères">
+    <label>Confirmer le nouveau</label>
+    <input type="password" id="mon-mdp-nouveau2" placeholder="Répéter">
+    <div id="mon-mdp-msg" class="msg"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fermerModals()">Annuler</button>
+      <button class="btn-save" onclick="sauvegarderMonMdp()">Changer</button>
     </div>
   </div>
 </div>
@@ -479,6 +498,36 @@ async function sauvegarderMdp() {
   }
 }
 
+// ─── Mon mot de passe (admin) ────────────────────────────────────
+function ouvrirModalMonMdp() {
+  document.getElementById('mon-mdp-ancien').value = '';
+  document.getElementById('mon-mdp-nouveau').value = '';
+  document.getElementById('mon-mdp-nouveau2').value = '';
+  document.getElementById('mon-mdp-msg').textContent = '';
+  document.getElementById('modal-mon-mdp').classList.remove('hidden');
+}
+
+async function sauvegarderMonMdp() {
+  const ancien = document.getElementById('mon-mdp-ancien').value;
+  const nouveau = document.getElementById('mon-mdp-nouveau').value;
+  const nouveau2 = document.getElementById('mon-mdp-nouveau2').value;
+  const msg = document.getElementById('mon-mdp-msg');
+  if (nouveau.length < 8) { msg.className='msg err'; msg.textContent='Minimum 8 caractères'; return; }
+  if (nouveau !== nouveau2) { msg.className='msg err'; msg.textContent='Les mots de passe ne correspondent pas'; return; }
+  const res = await fetch(`${API}/admin/mon-mot-de-passe`, {
+    method: 'PUT',
+    headers: {'Authorization':'Bearer '+token, 'Content-Type':'application/json'},
+    body: JSON.stringify({ancien_mot_de_passe: ancien, nouveau_mot_de_passe: nouveau})
+  });
+  const data = await res.json();
+  if (res.ok) {
+    msg.className='msg ok'; msg.textContent='✓ Mot de passe changé ! Reconnexion...';
+    setTimeout(seDeconnecter, 1800);
+  } else {
+    msg.className='msg err'; msg.textContent = data.message || 'Erreur';
+  }
+}
+
 // ─── Modal suspension ────────────────────────────────────────────
 function ouvrirSuspension(id) {
   editingId = id;
@@ -501,7 +550,7 @@ async function confirmerSuspension() {
 
 // ─── Utils ───────────────────────────────────────────────────────
 function fermerModals() {
-  ['modal-abo','modal-mdp','modal-suspend'].forEach(id =>
+  ['modal-abo','modal-mdp','modal-suspend','modal-mon-mdp'].forEach(id =>
     document.getElementById(id).classList.add('hidden')
   );
   editingId = null;
