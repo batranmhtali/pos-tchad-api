@@ -244,17 +244,16 @@ class AdminController extends Controller
      */
     public function changerMonMotDePasse(Request $request)
     {
+        $this->verifierAdmin();
+
         $request->validate([
             'ancien_mot_de_passe' => 'required|string',
             'nouveau_mot_de_passe' => 'required|string|min:8',
         ]);
 
-        $user = auth()->user();
-        if (!$user) {
-            return response()->json(['message' => 'Non authentifie'], 401);
-        }
+        $admin = auth()->user();
+        $user = User::findOrFail($admin->id);
 
-        // Verifier l'ancien mot de passe
         if (!\Illuminate\Support\Facades\Hash::check($request->ancien_mot_de_passe, $user->mot_de_passe_hash)) {
             return response()->json(['message' => 'Ancien mot de passe incorrect'], 403);
         }
