@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Log;
 
@@ -19,18 +20,30 @@ class AuthController extends Controller
                 'mot_de_passe' => 'required|string',
             ]);
 
+            // Protection anti-force-brute : max 5 tentatives par telephone
+            $cle = 'login:' . $credentials['telephone'];
+            if (RateLimiter::tooManyAttempts($cle, 5)) {
+                $secondes = RateLimiter::availableIn($cle);
+                return response()->json([
+                    'message' => "Trop de tentatives. Reessayez dans {$secondes} secondes."
+                ], 429);
+            }
+
             $user = User::where('telephone', $credentials['telephone'])
                         ->where('actif', 1)
                         ->first();
 
             if (!$user) {
+                RateLimiter::hit($cle, 60);
                 return response()->json(['message' => 'Utilisateur introuvable'], 401);
             }
 
             if (!Hash::check($credentials['mot_de_passe'], $user->mot_de_passe_hash)) {
+                RateLimiter::hit($cle, 60);
                 return response()->json(['message' => 'Mot de passe incorrect'], 401);
             }
 
+            RateLimiter::clear($cle);
             $token = JWTAuth::fromUser($user);
 
             $user->update(['derniere_connexion' => now()]);
