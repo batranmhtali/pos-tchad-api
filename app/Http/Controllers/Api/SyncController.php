@@ -68,6 +68,7 @@ class SyncController extends Controller
                             'seuil_alerte'  => $produit['seuilAlerte'] ?? 5,
                             'icone'         => $produit['icone'] ?? '',
                             'code_barre'    => $produit['codeBarre'] ?? '',
+                            'service'       => $produit['service'] ?? false,
                             'synced_at'     => now(),
                         ]
                     );
