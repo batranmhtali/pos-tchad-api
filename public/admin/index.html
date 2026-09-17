@@ -186,6 +186,18 @@ tr:hover td { background: #f9fefe; }
 <div id="modal-abo" class="modal-overlay hidden">
   <div class="modal">
     <h3 id="modal-abo-titre">Modifier abonnement</h3>
+    <div style="background:#f0fdf9;border:1.5px solid #99f6e4;border-radius:12px;padding:14px;margin-bottom:18px;">
+      <div style="font-size:13px;font-weight:700;color:#0f766e;margin-bottom:10px;">
+        Le client a paye ? Prolonger rapidement :
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button onclick="prolonger(1)" style="flex:1;min-width:70px;padding:10px;background:#009688;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;">+1 mois</button>
+        <button onclick="prolonger(2)" style="flex:1;min-width:70px;padding:10px;background:#009688;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;">+2 mois</button>
+        <button onclick="prolonger(3)" style="flex:1;min-width:70px;padding:10px;background:#009688;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;">+3 mois</button>
+        <button onclick="prolonger(6)" style="flex:1;min-width:70px;padding:10px;background:#f59e0b;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;">+6 mois</button>
+      </div>
+      <div id="prolonger-msg" style="font-size:12px;margin-top:8px;"></div>
+    </div>
     <label>Plan</label>
     <select id="m-plan">
       <option value="essai">Essai (gratuit)</option>
@@ -465,6 +477,34 @@ async function sauvegarderAbo() {
   });
   fermerModals();
   await Promise.all([chargerStats(), chargerBoutiques()]);
+}
+
+// ─── Prolongation rapide (le client a paye) ──────────────────────
+async function prolonger(mois) {
+  const msg = document.getElementById('prolonger-msg');
+  msg.style.color = '#6b7280';
+  msg.textContent = 'Prolongation en cours...';
+  try {
+    const res = await fetch(`${API}/admin/boutiques/${editingId}/prolonger`, {
+      method: 'PUT',
+      headers: {'Authorization':'Bearer '+token, 'Content-Type':'application/json'},
+      body: JSON.stringify({mois: mois})
+    });
+    const data = await res.json();
+    if (res.ok) {
+      msg.style.color = '#0f766e';
+      msg.textContent = '✓ ' + (data.message || 'Abonnement prolonge') +
+        (data.boutique && data.boutique.abonnement_fin ? ' (jusqu\'au ' + data.boutique.abonnement_fin + ')' : '');
+      await Promise.all([chargerStats(), chargerBoutiques()]);
+      setTimeout(fermerModals, 1800);
+    } else {
+      msg.style.color = '#dc2626';
+      msg.textContent = data.message || 'Erreur';
+    }
+  } catch (e) {
+    msg.style.color = '#dc2626';
+    msg.textContent = 'Erreur de connexion';
+  }
 }
 
 // ─── Modal mot de passe ──────────────────────────────────────────

@@ -83,6 +83,7 @@ Route::prefix('admin')->middleware('auth:api')->group(function () {
     Route::get('/boutiques-saas',                [AdminController::class, 'listeBoutiques']);
     Route::get('/boutiques-saas/stats',          [AdminController::class, 'statistiquesBoutiques']);
     Route::put('/boutiques/{id}/abonnement',     [AdminController::class, 'modifierAbonnementBoutique']);
+    Route::put('/boutiques/{id}/prolonger',      [AdminController::class, 'prolongerAbonnement']);
     Route::put('/boutiques/{id}/suspendre',      [AdminController::class, 'suspendreBoutique']);
     Route::put('/boutiques/{id}/password',       [AdminController::class, 'changerMotDePasseBoutique']);
 });
