@@ -213,40 +213,31 @@ class AdminController extends Controller
 
     public function prolongerAbonnement(Request $request, $id)
     {
-        try {
-            $this->verifierAdmin();
+        $this->verifierAdmin();
 
-            $boutique = Boutique::findOrFail($id);
-            $mois = (int) ($request->mois ?? 1);
-            if ($mois < 1) $mois = 1;
+        $boutique = Boutique::findOrFail($id);
+        $mois = (int) ($request->mois ?? 1);
+        if ($mois < 1) $mois = 1;
 
-            $base = $boutique->abonnement_fin;
-            $depart = ($base && $base->isFuture()) ? $base : now();
-            $nouvelleFin = $depart->copy()->addMonths($mois);
+        $base = $boutique->abonnement_fin;
+        $depart = ($base && $base->isFuture()) ? $base : now();
+        $nouvelleFin = $depart->copy()->addMonths($mois);
 
-            $boutique->update([
-                'plan'             => 'pro',
-                'abonnement_fin'   => $nouvelleFin,
-                'abonnement_actif' => true,
-            ]);
+        $boutique->update([
+            'plan'             => 'pro',
+            'abonnement_fin'   => $nouvelleFin,
+            'abonnement_actif' => true,
+        ]);
 
-            return response()->json([
-                'message' => "Abonnement prolonge de $mois mois",
-                'boutique' => [
-                    'id'               => $boutique->id,
-                    'plan'             => $boutique->fresh()->plan,
-                    'abonnement_fin'   => $boutique->fresh()->abonnement_fin?->format('Y-m-d'),
-                    'abonnement_valide'=> $boutique->fresh()->abonnementValide(),
-                ],
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'ERREUR DIAG',
-                'erreur' => $e->getMessage(),
-                'ligne' => $e->getLine(),
-                'fichier' => basename($e->getFile()),
-            ], 500);
-        }
+        return response()->json([
+            'message' => "Abonnement prolonge de $mois mois",
+            'boutique' => [
+                'id'               => $boutique->id,
+                'plan'             => $boutique->fresh()->plan,
+                'abonnement_fin'   => $boutique->fresh()->abonnement_fin?->format('Y-m-d'),
+                'abonnement_valide'=> $boutique->fresh()->abonnementValide(),
+            ],
+        ]);
     }
 
     public function suspendreBoutique($id)
